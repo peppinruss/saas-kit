@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raccolta dati treno - Mercitalia Rail</title>
+
+    <!-- CSS STYLING -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F6F6F6;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0 5px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #464646;
+            margin-bottom: 48px;
+            text-align: center;
+            font-size: 3rem;
+        }
+
+        h2 {
+            color: #7C7C7C;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-size: 1rem;
+            border-bottom: 1px solid #DCDCDC;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            gap: 15px;
+            margin-bottom: 20px;;
+        }
+
+        .form-group.full {
+            grid-template-columns: 1fr;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            gap: 4px;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .wagon-row {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 0px;
+            border-left: 5px solid #3b38e8;
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .wagon-row .form-group {
+            margin-bottom: 15px;
+        }
+
+        .wagon-number {
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        #add-wagon {
+            background-color: #000000;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        #add-wagon:hover {
+            background-color: #858585;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(117, 117, 117, 0.3);
+        }
+
+        #submit-btn {
+            background-color: #28a745;
+            color: white;
+            width: 100%;
+            margin-top: 30px;
+            font-size: 1.1rem;
+        }
+
+        #submit-btn:hover:not(:disabled) {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        #submit-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Raccolta Dati Treno</h1>
+
+        <!-- Messaggio di errore (nascosto di default) -->
+        <div class="error" id="error-message"></div>
+        <!-- Messaggio di successo (nascosto di default) -->
+        <div class="success" id="success-message"></div>
+
+        <!-- FORM PRINCIPALE -->
+        <form id="train-form" autocomplete="off">
+
+            <!-- SEZIONE 1: DATI TRENO -->
+            <h2>Dati Treno</h2>
+            <div class="form-group">
+                <label>
+                    Data partenza
+                    <input type="date" name="data_partenza" required />
+                </label>
+                <label>
+                    Numero treno
+                    <input type="text" name="numero_treno" required />
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Locomotiva
+                    <input type="text" name="locomotiva" required />
+                </label>
+                <label>
+                    Serie Locomotiva
+                    <input type="text" name="serie_locomotiva" required />
+                </label>
+            </div>
+
+            <!-- SEZIONE 2: CARRI (DINAMICI) -->
+            <h2>Carri</h2>
+            <div id="wagons-container"></div>
+            <button id="add-wagon" type="button">+ Aggiungi carro</button>
+
+            <!-- SEZIONE 3: CONTATTI -->
+            <h2>Contatti</h2>
+            <div class="form-group full">
+                <label>
+                    Email destinatario
+                    <input type="email" name="email_destinatario" placeholder="utente@dominio.it" required />
+                </label>
+            </div>
+            <div class="form-group full">
+                <label>
+                    Telefono contatto
+                    <input type="tel" name="telefono_contatto" placeholder="+39" />
+                </label>
+            </div>
+
+            <!-- BOTTONE INVIO -->
+            <button id="submit-btn" type="submit">Invia dati</button>
+        </form>
+    </div>
+
+    <!-- SCRIPT JAVASCRIPT -->
+    <script type="module">
+        // ============================================
+        // STEP 1: IMPORTA LA LIBRERIA SUPABASE
+        // ============================================
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+        // ============================================
+        // STEP 2: CONFIGURA LE CREDENZIALI SUPABASE
+        // ============================================
+        // ⚠️ INSERISCI QUI IL TUO SUPABASE URL
+        // Esempio: "https://tuoprogetto.supabase.co"
+        const SUPABASE_URL = 'https://mkerqgqxwepnsienmtdp.supabase.co';
+
+        // ⚠️ INSERISCI QUI LA TUA ANON KEY
+        // Trovala in: Project Settings → API → anon public
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZXJxZ3F4d2VwbnNpZW5tdGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNzkwNjAsImV4cCI6MjA3OTc1NTA2MH0.F5uWbob-SVzYwvScrfpH_4ERl69tmJhDGjqJdbNzuHU";
+
+        // Crea il client Supabase con le credenziali
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================
+        // STEP 3: INIZIALIZZAZIONE QUANDO PAGINA CARICA
+        // ============================================
+        window.addEventListener("DOMContentLoaded", () => {
+            // Seleziona gli elementi dal DOM
+            const wagonsContainer = document.getElementById("wagons-container");
+            const addWagonBtn = document.getElementById("add-wagon");
+            const form = document.getElementById("train-form");
+            const errorDiv = document.getElementById("error-message");
+            const successDiv = document.getElementById("success-message");
+
+            // ============================================
+            // STEP 4: FUNZIONE PER CREARE UNA RIGA CARRO
+            // ============================================
+            // Questa funzione crea dinamicamente un nuovo blocco
+            // per inserire i dati di un carro
+            function createWagonRow(wagonNumber = null) {
+                const div = document.createElement("div");
+                div.className = "wagon-row";
+
+                // Se non è specificato il numero, conteggia quanti carri ci sono già
+                if (wagonNumber === null) {
+                    wagonNumber = document.querySelectorAll(".wagon-row").length + 1;
+                }
+
+                // HTML della riga carro con tutti i campi richiesti
+                div.innerHTML = `
+          <div class="wagon-number">Carro #${wagonNumber}</div>
+          
+          <div class="form-group">
+            <label>
+              Numero carro
+              <input name="numero_carro" type="text" maxlength="16" placeholder="16 cifre o ultime 4" required />
+            </label>
+            <label>
+              Tara (Kg)
+              <input name="tara_kg" type="number" min="0"/>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label>
+              Massa frenata (t)
+              <input name="massa_frenata_t" type="number" min="0"/>
+            </label>
+            <label>
+              Frenatura (P o G)
+              <select name="frenatura" required>
+                <option value="">- Scegli -</option>
+                <option value="P">P</option>
+                <option value="G">G</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label>
+              Freno a mano (kN)
+              <input name="freno_mano_kn" type="number" min="0"/>
+            </label>
+            <label>
+              Tipo suole
+              <select name="tipo_suole" required>
+                <option value="">- Scegli -</option>
+                <option value="L">L</option>
+                <option value="LL">LL</option>
+                <option value="K">K</option>
+                <option value="Ghisa">Ghisa</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label>
+              Velocità (km/h)
+              <input name="velocita_kmh" type="number" min="0"/>
+            </label>
+            <label>
+              Stato revisione
+              <select name="stato_revisione" required>
+                <option value="">- Scegli -</option>
+                <option value="OK">OK</option>
+                <option value="in scadenza">In scadenza</option>
+                <option value="scaduto">Scaduto</option>
+              </select>
+            </label>
+          </div>
+        `;
+
+                // Aggiungi la riga al container
+                wagonsContainer.appendChild(div);
+            }
+
+            // ============================================
+            // STEP 5: EVENTO "AGGIUNGI CARRO"
+            // ============================================
+            // Quando clicchi il bottone "Aggiungi carro", crea una nuova riga
+            addWagonBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                createWagonRow();
+            });
+
+            // ============================================
+            // STEP 6: CREA LA PRIMA RIGA CARRO AL CARICAMENTO
+            // ============================================
+            // Così l'utente trova almeno un carro già presente
+            createWagonRow();
+
+            // ============================================
+            // STEP 7: EVENTO SUBMIT DEL FORM
+            // ============================================
+            // Quando l'utente clicca "Invia dati"
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault(); // Previene il reload della pagina
+
+                const submitBtn = document.getElementById("submit-btn");
+                submitBtn.disabled = true; // Disabilita il bottone durante l'invio
+
+                // Nascondi messaggi precedenti
+                errorDiv.style.display = "none";
+                successDiv.style.display = "none";
+
+                try {
+                    // ============================================
+                    // STEP 8: RACCOGLI I DATI DEL TRENO
+                    // ============================================
+                    // Leggi i valori dal form
+                    const dataPartenza = form.data_partenza.value;
+                    const numeroTreno = form.numero_treno.value;
+                    const locomotiva = form.locomotiva.value;
+                    const serieLocomotiva = form.serie_locomotiva.value;
+                    const emailDestinatario = form.email_destinatario.value;
+                    const telefonoContatto = form.telefono_contatto.value;
+
+                    // Log per debug (mostra in console cosa stai inviando)
+                    console.log("🚂 Dati treno:", {
+                        dataPartenza,
+                        numeroTreno,
+                        locomotiva,
+                        serieLocomotiva,
+                        emailDestinatario,
+                        telefonoContatto
+                    });
+
+                    // ============================================
+                    // STEP 9: INSERISCI IL TRENO IN SUPABASE
+                    // ============================================
+                    // Fa una richiesta POST alla tabella "trains"
+                    const { data: train, error: trainError } = await supabase
+                        .from("trains") // Nome tabella
+                        .insert({
+                            data_partenza: dataPartenza,
+                            numero_treno: numeroTreno,
+                            locomotiva: locomotiva,
+                            serie_locomotiva: serieLocomotiva,
+                            email_destinatario: emailDestinatario,
+                            telefono_contatto: telefonoContatto
+                        })
+                        .select() // Ritorna i dati inseriti
+                        .single(); // Ritorna un singolo record (non un array)
+
+                    // Se c'è errore, fermati e mostralo
+                    if (trainError) {
+                        console.error("❌ Errore inserimento treno:", trainError);
+                        throw trainError;
+                    }
+
+                    console.log("✅ Treno inserito con ID:", train.id);
+
+                    // ============================================
+                    // STEP 10: RACCOGLI I DATI DI TUTTI I CARRI
+                    // ============================================
+                                        // Trova tutti i blocchi "wagon-row" che hai creato
+                                        const wagonRows = document.querySelectorAll(".wagon-row");
+                                        const wagons = [];
+                                        const trainId = train.id; // Prendi l'ID del treno appena inserito
+                    
+                                        // Estrai i dati da ogni riga carro e costruisci l'array da inserire
+                                        wagonRows.forEach((row, index) => {
+                                            const numeroInput = row.querySelector('input[name="numero_carro"]');
+                                            const taraInput = row.querySelector('input[name="tara_kg"]');
+                                            const massaFrenataInput = row.querySelector('input[name="massa_frenata_t"]');
+                                            const frenoManoInput = row.querySelector('input[name="freno_mano_kn"]');
+                                            const velocitaInput = row.querySelector('input[name="velocita_kmh"]');
+                                            const frenaturaSelect = row.querySelector('select[name="frenatura"]');
+                                            const tipoSuoleSelect = row.querySelector('select[name="tipo_suole"]');
+                                            const statoRevisioneSelect = row.querySelector('select[name="stato_revisione"]');
+                    
+                                            const numero = numeroInput ? numeroInput.value.trim() : "";
+                                            const tara = parseFloat(taraInput ? taraInput.value : "0") || 0;
+                                            const massaFrenata = parseFloat(massaFrenataInput ? massaFrenataInput.value : "0") || 0;
+                                            const frenoMano = parseFloat(frenoManoInput ? frenoManoInput.value : "0") || 0;
+                                            const velocita = parseFloat(velocitaInput ? velocitaInput.value : "0") || 0;
+                                            const frenatura = frenaturaSelect ? frenaturaSelect.value : "";
+                                            const tipoSuole = tipoSuoleSelect ? tipoSuoleSelect.value : "";
+                                            const statoRevisione = statoRevisioneSelect ? statoRevisioneSelect.value : "";
+                    
+                                            // Se il numero carro non è stato fornito, segnala l'errore (richiesto)
+                                            if (!numero) {
+                                                throw new Error(`Il campo "Numero carro" è obbligatorio per il carro #${index + 1}.`);
+                                            }
+                    
+                                            wagons.push({
+                                                train_id: trainId,
+                                                numero_carro: numero,
+                                                tara_kg: tara,
+                                                massa_frenata_t: massaFrenata,
+                                                freno_mano_kn: frenoMano,
+                                                velocita_kmh: velocita,
+                                                frenatura: frenatura,
+                                                tipo_suole: tipoSuole,
+                                                stato_revisione: statoRevisione
+                                            });
+                                        });
+                    
+                                        // Inserisci tutti i carri nella tabella 'wagons'
+                                        if (wagons.length > 0) {
+                                            const { data: insertedWagons, error: wagonsError } = await supabase
+                                                .from("wagons")
+                                                .insert(wagons);
+                    
+                                            if (wagonsError) {
+                                                console.error("❌ Errore inserimento carri:", wagonsError);
+                                                throw wagonsError;
+                                            }
+                    
+                                            console.log("✅ Carri inseriti:", insertedWagons);
+                                            // Invio email con Edge Function
+                                            const response = await fetch(
+                                                "https://mkerqgqxwepnsienmtdp.supabase.co/functions/v1/send-train-email",
+                                                {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                                                    },
+                                                    body: JSON.stringify({
+                                                        train,
+                                                        wagons,
+                                                    })
+                                                }
+                                            );
+
+                                            if (!response.ok) {
+                                                console.error("❌ Errore invio email:", await response.text());
+                                                alert("Dati salvati ma invio email fallito.");
+                                            } else {
+                                                console.log("✅ Email inviata con successo");
+                                            }
+
+                                        }
+                    
+                                        // Mostra messaggio di successo e resetta il form
+                                        successDiv.innerText = "Dati inviati con successo.";
+                                        successDiv.style.display = "block";
+                                        form.reset();
+                    
+                                        // Ripristina un singolo carro iniziale
+                                        wagonsContainer.innerHTML = "";
+                                        createWagonRow();
+                    
+                                    } catch (err) {
+                                        console.error("❌ Errore durante l'invio:", err);
+                                        errorDiv.innerText = err.message || JSON.stringify(err);
+                                        errorDiv.style.display = "block";
+                                    } finally {
+                                        // Riabilita il bottone di invio in ogni caso
+                                        submitBtn.disabled = false;
+                                    }
+                                });
+                            });
+                        </script>
+                    </body>
+                    </html>
