@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raccolta dati treno - Mercitalia Rail</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="container">
+        <h1>Raccolta Dati Treno</h1>
+
+        <!-- FORM PRINCIPALE -->
+        <form id="train-form" autocomplete="off">
+            <!-- SEZIONE 1: DATI TRENO -->
+            <h2>Dati Treno</h2>
+            <div class="form-group">
+                <label>
+                    Data partenza
+                    <input type="date" name="data_partenza" required />
+                </label>
+                <label>
+                    Numero treno
+                    <input type="text" name="numero_treno" required />
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Locomotiva
+                    <input type="text" inputmode="numeric" name="locomotiva" required />
+                </label>
+                <label>
+                    Serie Locomotiva
+                    <input type="text" inputmode="numeric" name="serie_locomotiva" required />
+                </label>
+            </div>
+
+            <!-- SEZIONE 2: CARRI (DINAMICI) -->
+            <h2>Carri</h2>
+            <div id="wagons-container"></div>
+            <button id="add-wagon" type="button">+ Aggiungi carro</button>
+
+            <!-- SEZIONE 3: CONTATTI -->
+            <h2>Contatti</h2>
+            <div class="form-group full">
+                <label>
+                    Email destinatario
+                    <input type="email" name="email_destinatario" placeholder="utente@dominio.it" required />
+                </label>
+            </div>
+            <div class="form-group full">
+                <label>
+                    Telefono contatto
+                    <input type="tel" inputmode="numeric" name="telefono_contatto" placeholder="+39" />
+                </label>
+            </div>
+
+            <!-- BOTTONE INVIO -->
+            <button id="submit-btn" type="submit">Invia dati</button>
+            <!-- Messaggi sotto il bottone -->
+            <div class="error" id="error-message"></div>
+            <div class="success" id="success-message"></div>
+        </form>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
