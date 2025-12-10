@@ -41,6 +41,14 @@ window.addEventListener("DOMContentLoaded", () => {
           Massa frenata (t)
           <input name="massa_frenata_t" type="number" inputmode="numeric" min="0" class="massa_frenata"/>
         </label>
+        <label>
+          Frenatua
+          <select name="frenatura" required>
+            <option value="">- Scegli -</option>
+            <option value="G">G</option>
+            <option value="P">P</option>
+          </select>
+        </label>
         <label class="checkbox-label">
           <input type="checkbox" name="isolato" value="true" class="isolato_checkbox" />
           Isolato
@@ -282,3 +290,4 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
